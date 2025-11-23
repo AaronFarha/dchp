@@ -150,4 +150,4 @@ if TIGHT_LAYOUT:
     plt.tight_layout()
 
 #
-plt.savefig('efficiency.png', dpi=DPI, bbox_inches='tight')
+plt.savefig('./figs/efficiency.png', dpi=DPI, bbox_inches='tight')

@@ -415,7 +415,7 @@ def create_parity_plot(ac, dc, config=PLOT_CONFIG, colors=COLOR_SCHEME):
     
     return fig, ax
 
-year = 'data/2223'
+year = 'data/2324'
 data = '/DC_House_Nov_April.csv'
 HDH_AC = historical_hdh(year+data, outlier_method='iqr', iqr_factor=5)
 Tbal = 20.556
@@ -428,7 +428,7 @@ HDH_DC = hdh(year,DCHP,Tbal)
 
 # figure - HDH frequency plot
 create_frequency_bin_plot(HDH_DC['HDH (C)'], HDH_AC['HDH (C)'], bins=30, labels=['2024 DC data', '2023 AC data'], title="")
-plt.savefig("HDH_frequency_plot.png", dpi=400, bbox_inches='tight')
+plt.savefig("./figs/HDH_frequency_plot.png", dpi=400, bbox_inches='tight')
 
 print("Minimum ambient temperature seen by the DCHP")
 print(np.max(HDH_DC['Tamb (C)']))
@@ -521,7 +521,7 @@ plt.gca().yaxis.set_major_locator(plt.MultipleLocator(1))
 plt.legend(frameon=True, fancybox=True, edgecolor='black', 
           fontsize=18, loc='upper left')
 plt.tight_layout()
-plt.savefig("OU-hdh.png", dpi=400, bbox_inches='tight')
+plt.savefig("./figs/OU-hdh.png", dpi=400, bbox_inches='tight')
 
 print("\n===============================Two Sample T-Test Results - HDH===============================\n")
 
@@ -643,7 +643,7 @@ plt.gca().yaxis.set_major_locator(plt.MultipleLocator(1))
 plt.legend(frameon=True, fancybox=True, edgecolor='black', 
           fontsize=18, loc='upper left')
 plt.tight_layout()
-plt.savefig("OU-hdd.png", dpi=400, bbox_inches='tight')
+plt.savefig("./figs/OU-hdd.png", dpi=400, bbox_inches='tight')
 #plt.show()
 
 x = np.linspace(10,32,100)

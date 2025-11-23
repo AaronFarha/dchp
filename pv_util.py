@@ -133,7 +133,7 @@ def bar_plot(dc_use, ac_use, dc_ideal_use):
     plt.tight_layout()
 
     #plt.show()
-    plt.savefig("net-home-use_ideal.png", dpi=400, bbox_inches='tight')
+    plt.savefig("./figs/net-home-use_ideal.png", dpi=400, bbox_inches='tight')
     return
 
 def monthly_bar_plot(HDH, E_house_dc, E_house_ac, E_house_ideal):
@@ -231,7 +231,7 @@ def monthly_bar_plot(HDH, E_house_dc, E_house_ac, E_house_ideal):
 
     plt.tight_layout()
     #plt.show()
-    plt.savefig("monthly_home_ideal.png", bbox_inches='tight')
+    plt.savefig("./figs/monthly_home_ideal.png", bbox_inches='tight')
 
 def efficiency(x, a=20, b=17.2, c=1.5, max_val=98):
     """function to calculate the efficiency of a component using the percentage full load as an input
@@ -383,24 +383,3 @@ ideal_net_price = (np.sum(E_house_ideal)) * 0.14
 
 bar_plot(dc_net_price,ac_net_price,ideal_net_price)
 monthly_bar_plot(HDH_AC, E_house, E_house_ac, E_house_ideal)
-
-dc_rev = ac_net_price - dc_net_price
-ideal_rev = ac_net_price - ideal_net_price
-
-dpp = np.linspace(5,40,100)
-
-dc_capex = payback(dc_rev,dpp)
-ideal_capex = payback(ideal_rev,dpp)
-
-plt.figure(figsize=(8, 6), dpi=400)
-plt.plot(dpp, dc_capex, linewidth=3, label='DC retrofit: revenue = $' + str(round(dc_rev,2)))
-plt.plot(dpp, ideal_capex, linewidth=3, label='Ideal DC: revenue = $' + str(round(ideal_rev,2)))
-plt.xlabel('Payback period [years]', fontsize=14)
-plt.ylabel('Capital expense [USD]', fontsize=14)
-plt.title('', fontsize=14)
-plt.legend(fontsize=12)
-#plt.figtext(0.5, 0.2, f'DC Revenue: ${dc_rev:.2f} | Ideal Revenue: ${ideal_rev:.2f}', 
-#            ha='center', fontsize=10, style='italic')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('capex_payback.png', bbox_inches='tight')
