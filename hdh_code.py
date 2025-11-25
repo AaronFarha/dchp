@@ -533,25 +533,15 @@ print("\nVariation of HDH_AC:          ", f"{variation(HDH_AC['OU (kWh)']):.2f}"
 print("Mean of HDH_AC:               ", f"{np.mean(HDH_AC['OU (kWh)']):.2f}")
 print("Standard Deviation of HDH_AC: ", f"{np.std(HDH_AC['OU (kWh)']):.2f}")
 
-t_test = stats.ttest_ind(HDH_DC['OU (kWh)'], HDH_AC['OU (kWh)'], equal_var=True)
+X_ac = (HDH_AC['OU (kWh)']) / (HDH_AC['HDH (C)'] - 8)
+X_dc = (HDH_DC['OU (kWh)']) / (HDH_DC['HDH (C)'] - 8)
+
+t_test = stats.ttest_ind(X_dc, X_ac, equal_var=False)
 
 print("\nT-Test Statistic:   ", f"{t_test[0]:.2f}")
-print("P-Value:            ", t_test[1])
+print("P-Value:            ", f"{t_test[1]:.4f}")
 
-print("\n===============================Two Sample T-Test Results - HDH Model===============================\n")
 
-print("Variation of HDH_DC:          ", f"{variation(poly_dc(dc_x)):.2f}")
-print("Mean of HDH_DC:               ", f"{np.mean(poly_dc(dc_x)):.2f}")
-print("Standard Deviation of HDH_DC: ", f"{np.std(poly_dc(dc_x)):.2f}")
-
-print("\nVariation of HDH_AC:          ", f"{variation(poly_ac(ac_x)):.2f}")
-print("Mean of HDH_AC:               ", f"{np.mean(poly_ac(ac_x)):.2f}")
-print("Standard Deviation of HDH_AC: ", f"{np.std(poly_ac(ac_x)):.2f}")
-
-t_test = stats.ttest_ind(poly_dc(dc_x), poly_ac(ac_x), equal_var=True)
-
-print("\nT-Test Statistic:   ", f"{t_test[0]:.2f}")
-print("P-Value:            ", t_test[1])
 
 ## Figure - Daily average kWh and HDD for OU
 plt.figure(figsize=(8, 6), dpi=400)
@@ -668,96 +658,10 @@ print("\nVariation of HDD_AC:          ", f"{variation(HDH_AC['OU (kWh)']):.2f}"
 print("Mean of HDD_AC:               ", f"{np.mean(HDH_AC['OU (kWh)']):.2f}")
 print("Standard Deviation of HDD_AC: ", f"{np.std(HDH_AC['OU (kWh)']):.2f}")
 
-t_test = stats.ttest_ind(HDH_DC['OU (kWh)'], HDH_AC['OU (kWh)'], equal_var=True)
-
-print("\nT-Test Statistic:   ", f"{t_test[0]:.2f}")
-print("P-Value:            ", f"{t_test[1]:.4f}")
-
-
-X_ac = (HDH_AC['OU (kWh)']) / (HDH_AC['HDH (C)'] - 4)
-X_dc = (HDH_DC['OU (kWh)']) / (HDH_DC['HDH (C)'] - 4)
-
-print("\n===============================Two Sample T-Test Results - HDD===============================\n")
-
-print("Variation of HDD_DC:          ", f"{variation(X_dc):.2f}")
-print("Mean of HDD_DC:               ", f"{np.mean(X_dc):.2f}")
-print("Standard Deviation of HDD_DC: ", f"{np.std(X_dc):.2f}")
-
-print("\nVariation of HDD_AC:          ", f"{variation(X_ac):.2f}")
-print("Mean of HDD_AC:               ", f"{np.mean(X_ac):.2f}")
-print("Standard Deviation of HDD_AC: ", f"{np.std(X_ac):.2f}")
+X_ac = (HDH_AC['OU (kWh)']) / (HDH_AC['HDH (C)'] - 8)
+X_dc = (HDH_DC['OU (kWh)']) / (HDH_DC['HDH (C)'] - 8)
 
 t_test = stats.ttest_ind(X_dc, X_ac, equal_var=False)
 
 print("\nT-Test Statistic:   ", f"{t_test[0]:.2f}")
 print("P-Value:            ", f"{t_test[1]:.4f}")
-
-print("\n===============================Shared X-Intercept Model Results===============================\n")
-
-# Load weather data for DC period (2024-2025)
-weather_dc = pd.read_csv("./data/2425/weather_2425.csv")
-weather_dc['Time'] = pd.to_datetime(weather_dc['Time'])
-Tset_daily_dc = weather_dc.groupby(weather_dc['Time'].dt.date)['temperature (degC)'].mean()
-
-# Load weather data for AC period (2023-2024)
-weather_ac = pd.read_csv("./data/2324/weather_2324.csv")
-weather_ac['Time'] = pd.to_datetime(weather_ac['Time'])
-Tset_daily_ac = weather_ac.groupby(weather_ac['Time'].dt.date)['temperature (degC)'].mean()
-
-# Calculate temperature differences
-Tbal = 20.5
-
-dc_temp_diff = Tbal - Tset_daily_dc
-ac_temp_diff = Tbal - Tset_daily_ac
-
-# Remove NaN values
-dc_temp_diff = dc_temp_diff.dropna()
-ac_temp_diff = ac_temp_diff.dropna()
-
-# Calculate normalized statistics
-dc_hdh_normalized = HDH_DC['HDH (C)'].values / dc_temp_diff.reindex(HDH_DC.index).fillna(method='ffill').fillna(method='bfill').values
-ac_hdh_normalized = HDH_AC['HDH (C)'].values / ac_temp_diff.reindex(HDH_AC.index).fillna(method='ffill').fillna(method='bfill').values
-
-# Remove inf and NaN from normalized values
-dc_hdh_normalized = dc_hdh_normalized[np.isfinite(dc_hdh_normalized)]
-ac_hdh_normalized = ac_hdh_normalized[np.isfinite(ac_hdh_normalized)]
-
-print("Optimized shared x-intercept: ", f"{shared_intercept:.3f} °Ch")
-
-print("\n--- DC Heat Pump ---")
-print("Slope:                        ", f"{dc_slope:.4f} kW/°Ch")
-print("Y-intercept:                  ", f"{dc_intercept:.4f} kW")
-print("R²:                           ", f"{dc_r_squared:.3f}")
-print("Mean HDH:                     ", f"{np.mean(HDH_DC['HDH (C)']):.2f} °Ch")
-print("Std Dev HDH:                  ", f"{np.std(HDH_DC['HDH (C)']):.2f} °Ch")
-print("Mean temp difference (ΔT):   ", f"{np.mean(dc_temp_diff):.2f} °C")
-print("Std Dev temp difference:      ", f"{np.std(dc_temp_diff):.2f} °C")
-print("Mean normalized HDH:          ", f"{np.mean(dc_hdh_normalized):.4f} kW/°C")
-print("Std Dev normalized HDH:       ", f"{np.std(dc_hdh_normalized):.4f} kW/°C")
-
-print("\n--- AC Heat Pump ---")
-print("Slope:                        ", f"{ac_slope:.4f} kW/°Ch")
-print("Y-intercept:                  ", f"{ac_intercept:.4f} kW")
-print("R²:                           ", f"{ac_r_squared:.3f}")
-print("Mean HDH:                     ", f"{np.mean(HDH_AC['HDH (C)']):.2f} °Ch")
-print("Std Dev HDH:                  ", f"{np.std(HDH_AC['HDH (C)']):.2f} °Ch")
-print("Mean temp difference (ΔT):   ", f"{np.mean(ac_temp_diff):.2f} °C")
-print("Std Dev temp difference:      ", f"{np.std(ac_temp_diff):.2f} °C")
-print("Mean normalized HDH:          ", f"{np.mean(ac_hdh_normalized):.4f} kW/°C")
-print("Std Dev normalized HDH:       ", f"{np.std(ac_hdh_normalized):.4f} kW/°C")
-
-print("\n--- Comparison of Slopes ---")
-slope_diff = dc_slope - ac_slope
-slope_diff_pct = ((dc_slope - ac_slope) / ac_slope) * 100
-
-print("Slope difference (DC - AC):   ", f"{slope_diff:.4f} kW/°Ch")
-print("Relative difference:          ", f"{slope_diff_pct:.2f}%")
-
-normalized_diff = np.mean(dc_hdh_normalized) - np.mean(ac_hdh_normalized)
-normalized_diff_pct = (normalized_diff / np.mean(ac_hdh_normalized)) * 100
-print("\nNormalized HDH difference:    ", f"{normalized_diff:.4f} kW/°C")
-print("Normalized relative diff:     ", f"{normalized_diff_pct:.2f}%")
-
-print("\nOptimization success:         ", result.success)
-print("Final objective value (SSE):  ", f"{result.fun:.2f}")
-
