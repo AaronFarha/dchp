@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "Aaron Farha", email = ""}
+    {name = "Aaron Farha"}
 ]
 keywords = ["heat pump", "solar", "nanogrid", "DC", "AC", "energy analysis"]
 classifiers = [
