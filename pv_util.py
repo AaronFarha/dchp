@@ -291,6 +291,7 @@ def solar_use(weather,HDH,mode):
     x_all[0] = x0
     Pchem_all = np.zeros(hours+1)
     E_house = np.zeros(hours+1)
+    Gross_demand = np.zeros(hours+1)
     data_length = min(hours-1, len(HDH['PV Power']))
     b = np.zeros(hours) # battery electric charging power, kW
     
@@ -335,11 +336,12 @@ def solar_use(weather,HDH,mode):
         x_all[i+1] = a*x_all[i] + (1-a)*tau*Pchem_all[i]
         b[i] = max([eta*Pchem_all[i], Pchem_all[i]/eta])
         E_house[i] = - (eta_sol_nom * HDH['PV Power'].iloc[i] - HDH['Etot (kWh)'].iloc[i] / eta_hp_nom - b[i] - HDH['Home load (kWh)'].iloc[i] / eta_home)
+        Gross_demand[i] = HDH['Etot (kWh)'].iloc[i] / eta_hp_nom + HDH['Home load (kWh)'].iloc[i] / eta_home
         
         P_hp[i] = HDH['Etot (kWh)'].iloc[i] / eta_hp_nom
 
     print("Max P_HP: ", np.max(P_hp))
-    return E_house, Pchem_all, x_all, xMax, xMin, df
+    return E_house, Pchem_all, x_all, xMax, xMin, df, Gross_demand
 
 def payback(rev,DPP):
     """function to calculate the payback period of a nanogrid
@@ -354,6 +356,33 @@ def payback(rev,DPP):
     r = 0.07
     return (rev/r)*(1 - (1+r)**(-DPP))
 
+def print_gross_demand_table(gross_ac_tot, gross_dc_tot, gross_ideal_tot):
+    dc_pct = (gross_ac_tot - gross_dc_tot) / gross_ac_tot * 100
+    ideal_pct = (gross_ac_tot - gross_ideal_tot) / gross_ac_tot * 100
+
+    col_w = 18
+    headers = ["AC Base", "DC Nanogrid", "DC Ideal"]
+    units =   ["(MWh)",   "(MWh)",       "(MWh)"]
+    values =  [f"{gross_ac_tot:.3f}", f"{gross_dc_tot:.3f}", f"{gross_ideal_tot:.3f}"]
+    pcts =    ["—", f"-{dc_pct:.3f}%", f"-{ideal_pct:.3f}%"]
+
+    sep = "+" + "+".join("─" * col_w for _ in headers) + "+"
+
+    def row(cells):
+        return "|" + "|".join(c.center(col_w) for c in cells) + "|"
+
+    print()
+    print(" Gross Demand Summary ".center(len(sep), "═"))
+    print(sep)
+    print(row(headers))
+    print(row(units))
+    print(sep)
+    print(row(values))
+    print(row(pcts))
+    print(sep)
+    print()
+
+
 Tbal = 24
 
 year = '2024_full'
@@ -365,9 +394,9 @@ HDH_AC = hdh(year,ACHP,Tbal,AC_solar)
 
 weather = './data/2024_full/weather_2024_full.csv'
 
-E_house, Pchem_all, x_all, xMax, xMin, df = solar_use(weather, HDH_AC,'dc')
-E_house_ac, Pchem_all_ac, x_all_ac, xMax, xMin, df = solar_use(weather, HDH_AC,'ac')
-E_house_ideal, Pchem_all_ideal, x_all_ideal, xMax, xMin, df = solar_use(weather, HDH_AC,'dc-ideal')
+E_house, Pchem_all, x_all, xMax, xMin, df, gross_dc = solar_use(weather, HDH_AC,'dc')
+E_house_ac, Pchem_all_ac, x_all_ac, xMax, xMin, df, gross_ac = solar_use(weather, HDH_AC,'ac')
+E_house_ideal, Pchem_all_ideal, x_all_ideal, xMax, xMin, df, gross_ideal = solar_use(weather, HDH_AC,'dc-ideal')
 
 # Calculate available power for the whole timeseries
 available_power = eta_mppt * eta_inv_HP * HDH_AC['PV Power'] - HDH_AC['Etot (kWh)']
@@ -381,5 +410,11 @@ dc_net_price = (np.sum(E_house))*0.14
 ac_net_price = (np.sum(E_house_ac)) * 0.14
 ideal_net_price = (np.sum(E_house_ideal)) * 0.14
 
+gross_ac_tot = np.sum(gross_ac) / 1000
+gross_dc_tot = np.sum(gross_dc) / 1000
+gross_ideal_tot = np.sum(gross_ideal) / 1000
+
 bar_plot(dc_net_price,ac_net_price,ideal_net_price)
 monthly_bar_plot(HDH_AC, E_house, E_house_ac, E_house_ideal)
+
+print_gross_demand_table(gross_ac_tot, gross_dc_tot, gross_ideal_tot)
