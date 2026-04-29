@@ -336,7 +336,7 @@ def solar_use(weather,HDH,mode):
         x_all[i+1] = a*x_all[i] + (1-a)*tau*Pchem_all[i]
         b[i] = max([eta*Pchem_all[i], Pchem_all[i]/eta])
         E_house[i] = - (eta_sol_nom * HDH['PV Power'].iloc[i] - HDH['Etot (kWh)'].iloc[i] / eta_hp_nom - b[i] - HDH['Home load (kWh)'].iloc[i] / eta_home)
-        Gross_demand[i] = HDH['Etot (kWh)'].iloc[i] / eta_hp_nom + HDH['Home load (kWh)'].iloc[i] / eta_home
+        Gross_demand[i] = HDH['Etot (kWh)'].iloc[i] / eta_hp_nom + b[i]
         
         P_hp[i] = HDH['Etot (kWh)'].iloc[i] / eta_hp_nom
 
